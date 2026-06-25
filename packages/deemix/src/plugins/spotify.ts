@@ -187,10 +187,10 @@ export default class SpotifyPlugin extends BasePlugin {
 					if (this.getSpotifyErrorStatus(retryError) === 404) {
 						return this.generatePlaylistItemFromPage(dz, link_id, bitrate);
 					}
-					throw retryError;
+					return this.generatePlaylistItemFromPage(dz, link_id, bitrate);
 				}
 			} else {
-				throw e;
+				return this.generatePlaylistItemFromPage(dz, link_id, bitrate);
 			}
 		}
 
@@ -297,6 +297,34 @@ export default class SpotifyPlugin extends BasePlugin {
 			});
 		}
 
+		const embedPlaylist = await this.getPlaylistFromEmbedPage(link_id);
+		if (embedPlaylist) {
+			const playlistAPI: any = this._convertPlaylistStructure(
+				embedPlaylist.playlist
+			);
+			playlistAPI.various_artist = await dz.api.get_artist(5080);
+			playlistAPI.explicit = embedPlaylist.tracks.some(
+				(track) => track.explicit
+			);
+
+			return new Convertable({
+				type: "spotify_playlist",
+				id: link_id,
+				bitrate,
+				title: embedPlaylist.playlist.name,
+				artist: embedPlaylist.playlist.owner.display_name,
+				cover: playlistAPI.picture_thumbnail,
+				explicit: playlistAPI.explicit,
+				size: embedPlaylist.tracks.length,
+				collection: {
+					tracks: [],
+					playlistAPI,
+				},
+				plugin: "spotify",
+				conversion_data: embedPlaylist.tracks,
+			});
+		}
+
 		const trackIdSet = this.extractTrackIdsFromHtml(html);
 
 		// Main playlist page often exposes only a preview subset (e.g. 30).
@@ -381,6 +409,120 @@ export default class SpotifyPlugin extends BasePlugin {
 			plugin: "spotify",
 			conversion_data: tracklist,
 		});
+	}
+
+	async getPlaylistFromEmbedPage(link_id: string) {
+		try {
+			const embedPage = await got.get(
+				`https://open.spotify.com/embed/playlist/${link_id}`,
+				{
+					https: { rejectUnauthorized: false },
+				}
+			);
+			const nextDataMatch =
+				/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i.exec(
+					embedPage.body
+				);
+			if (!nextDataMatch?.[1]) return null;
+
+			const nextData = JSON.parse(nextDataMatch[1]);
+			const entity = nextData?.props?.pageProps?.state?.data?.entity;
+			if (!entity || !Array.isArray(entity.trackList)) return null;
+
+			const images = Array.isArray(entity.coverArt?.sources)
+				? entity.coverArt.sources.map((source) => ({ url: source.url }))
+				: [];
+			const playlist: any = {
+				snapshot_id: "",
+				collaborative: false,
+				owner: {
+					id: "spotify",
+					display_name: entity.subtitle || "Spotify",
+					href: "https://open.spotify.com/user/spotify",
+				},
+				description: "",
+				followers: { total: 0 },
+				id: link_id,
+				external_urls: {
+					spotify: `https://open.spotify.com/playlist/${link_id}`,
+				},
+				tracks: {
+					total: entity.trackList.length,
+					href: `https://open.spotify.com/playlist/${link_id}/tracks`,
+					items: [],
+					next: null,
+				},
+				images,
+				public: true,
+				name: entity.name || entity.title || `Spotify Playlist ${link_id}`,
+				uri: `spotify:playlist:${link_id}`,
+			};
+
+			const tracks: SpotifyTrack[] = [];
+			for (const item of entity.trackList) {
+				if (typeof item?.uri !== "string") continue;
+				const id = item.uri.split(":").pop();
+				if (!id || typeof item.title !== "string") continue;
+				const artists = String(item.subtitle || "")
+					.split(/\s*,\s*/)
+					.map((name) => name.trim())
+					.filter(Boolean)
+					.map((name) => ({
+						id: "",
+						name,
+						type: "artist",
+						uri: "",
+						external_urls: { spotify: "" },
+						href: "",
+					}));
+				tracks.push({
+					id,
+					uri: item.uri,
+					name: item.title,
+					explicit: Boolean(item.isExplicit),
+					duration_ms: item.duration || 0,
+					preview_url: item.audioPreview?.url || null,
+					artists,
+					album: {
+						id: "",
+						name: playlist.name,
+						images,
+						type: "album",
+						uri: "",
+						external_urls: { spotify: "" },
+						href: "",
+						album_type: "compilation",
+						total_tracks: entity.trackList.length,
+						available_markets: [],
+						release_date: "",
+						release_date_precision: "year",
+					},
+					external_ids: {},
+					external_urls: {
+						spotify: `https://open.spotify.com/track/${id}`,
+					},
+					href: "",
+					is_local: false,
+					is_playable: Boolean(item.isPlayable),
+					popularity: 0,
+					type: "track",
+					available_markets: [],
+					disc_number: 1,
+					track_number: tracks.length + 1,
+				} as SpotifyTrack);
+			}
+
+			if (!tracks.length) return null;
+			playlist.tracks.total = tracks.length;
+			playlist.tracks.items = tracks.map((track) => ({ track }));
+
+			return {
+				playlist,
+				tracks,
+			};
+		} catch {
+			return null;
+		}
 	}
 
 	async getSpotifyWebAccessToken() {
