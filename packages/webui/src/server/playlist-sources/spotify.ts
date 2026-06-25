@@ -5,6 +5,7 @@ import type {
 	SourcePlaylist,
 	SourceTrack,
 } from "./types.js";
+import { getPlaylistSourceSettings } from "./settings.js";
 
 function decodeHtml(value: string) {
 	return value
@@ -57,8 +58,13 @@ async function getPublicProfilePlaylists(username: string) {
 export function createSpotifyProvider(
 	spotifyPlugin: any
 ): PlaylistSourceProvider {
+	const getSpotifyUserId = () =>
+		process.env.SPOTIFY_USER_ID?.trim() ||
+		getPlaylistSourceSettings().spotifyUserId ||
+		"";
+
 	const status = (): PlaylistSourceStatus => {
-		const username = process.env.SPOTIFY_USER_ID?.trim() || "";
+		const username = getSpotifyUserId();
 		return {
 			id: "spotify",
 			name: "Spotify",
@@ -82,7 +88,7 @@ export function createSpotifyProvider(
 	return {
 		status,
 		async listPlaylists() {
-			const username = process.env.SPOTIFY_USER_ID?.trim() || "";
+			const username = getSpotifyUserId();
 			if (!spotifyPlugin.enabled || !username) return [];
 
 			try {

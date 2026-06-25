@@ -482,6 +482,7 @@ const en = {
 		search: "search",
 		charts: "charts",
 		favorites: "favorites",
+		connections: "connections",
 		linkAnalyzer: "link analyzer",
 		settings: "settings",
 		logs: "logs",

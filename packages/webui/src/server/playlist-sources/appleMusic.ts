@@ -5,12 +5,16 @@ import type {
 	SourcePlaylist,
 	SourceTrack,
 } from "./types.js";
+import { getPlaylistSourceSettings } from "./settings.js";
 
 const APPLE_MUSIC_API = "https://api.music.apple.com/v1";
 
 const getAppleCredentials = () => ({
 	developerToken: process.env.APPLE_MUSIC_DEVELOPER_TOKEN?.trim() || "",
-	userToken: process.env.APPLE_MUSIC_USER_TOKEN?.trim() || "",
+	userToken:
+		process.env.APPLE_MUSIC_USER_TOKEN?.trim() ||
+		getPlaylistSourceSettings().appleMusicUserToken ||
+		"",
 });
 
 const getArtworkUrl = (artwork?: { url?: string }) =>

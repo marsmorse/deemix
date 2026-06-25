@@ -21,6 +21,7 @@ import checkForUpdates from "./checkForUpdates.js";
 import getPlaylistSources from "./getPlaylistSources.js";
 import getSourcePlaylists from "./getSourcePlaylists.js";
 import getSourcePlaylistTracks from "./getSourcePlaylistTracks.js";
+import getAppleMusicDeveloperToken from "./getAppleMusicDeveloperToken.js";
 
 export default [
 	connect,
@@ -45,5 +46,6 @@ export default [
 	getPlaylistSources,
 	getSourcePlaylists,
 	getSourcePlaylistTracks,
+	getAppleMusicDeveloperToken,
 	checkForUpdates,
 ];

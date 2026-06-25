@@ -2,6 +2,7 @@ import { Deezer } from "deezer-sdk";
 import { sessionDZ } from "@/deemixApp.js";
 import { logger } from "@/helpers/logger.js";
 import { getLoginCredentials } from "@/helpers/loginStorage.js";
+import { getPlaylistSourceSettings } from "@/playlist-sources/settings.js";
 import { type ApiHandler } from "@/types.js";
 import {
 	DEEMIX_PACKAGE_VERSION,
@@ -21,6 +22,7 @@ const handler: ApiHandler["handler"] = async (req, res) => {
 	const dz = sessionDZ[req.session.id];
 	const deemix = req.app.get("deemix");
 	const isSingleUser = req.app.get("isSingleUser");
+	const playlistSourceSettings = getPlaylistSourceSettings();
 
 	if (!update) {
 		logger.info(`webui version ${WEBUI_PACKAGE_VERSION}`);
@@ -40,7 +42,10 @@ const handler: ApiHandler["handler"] = async (req, res) => {
 		currentUser: dz.currentUser,
 		deezerAvailable: await deemix.isDeezerAvailable(),
 		spotifyEnabled: deemix.plugins.spotify.enabled,
-		spotifyUser: process.env.SPOTIFY_USER_ID?.trim() || null,
+		spotifyUser:
+			process.env.SPOTIFY_USER_ID?.trim() ||
+			playlistSourceSettings.spotifyUserId ||
+			null,
 		credentialStatus: {
 			deezer: Boolean(getLoginCredentials().arl || process.env.DEEZER_ARL),
 			spotify: deemix.plugins.spotify.enabled,

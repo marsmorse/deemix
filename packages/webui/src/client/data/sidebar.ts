@@ -18,6 +18,12 @@ export const mainNavItems = [
 		label: "sidebar.favorites",
 	},
 	{
+		name: "connections",
+		routerName: "Connections",
+		icon: "hub",
+		label: "sidebar.connections",
+	},
+	{
 		name: "charts",
 		routerName: "Charts",
 		icon: "show_chart",

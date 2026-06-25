@@ -7,6 +7,7 @@ import removeFromQueue from "./removeFromQueue.js";
 import logout from "./logout.js";
 import saveSettings from "./saveSettings.js";
 import retryDownload from "./retryDownload.js";
+import savePlaylistSourceConnection from "./savePlaylistSourceConnection.js";
 
 export default [
 	changeAccount,
@@ -17,5 +18,6 @@ export default [
 	removeFromQueue,
 	logout,
 	saveSettings,
+	savePlaylistSourceConnection,
 	retryDownload,
 ];

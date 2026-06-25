@@ -16,6 +16,7 @@ import InfoArl from "@/views/InfoArl.vue";
 import InfoSpotifyFeatures from "@/views/InfoSpotifyFeatures.vue";
 import Tracklist from "@/views/TracklistView.vue";
 
+const Connections = () => import("@/views/ConnectionsView.vue");
 const Search = () => import("@/views/SearchView.vue");
 const Settings = () => import("@/views/SettingsPage.vue");
 const Artist = () => import("@/views/ArtistView.vue");
@@ -70,6 +71,14 @@ const routes: RouteRecordRaw[] = [
 		path: "/favorites",
 		name: "Favorites",
 		component: Favorites,
+		meta: {
+			notKeepAlive: true,
+		},
+	},
+	{
+		path: "/connections",
+		name: "Connections",
+		component: Connections,
 		meta: {
 			notKeepAlive: true,
 		},
