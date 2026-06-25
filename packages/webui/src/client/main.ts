@@ -51,26 +51,12 @@ async function startApp() {
 	appInfoStore.setAppInfo(connectResponse.update);
 	loginStore.setSpotifyStatus(spotifyStatus);
 
-	const missingCredentials: string[] = [];
-	if (!connectResponse.credentialStatus?.deezer)
-		missingCredentials.push("Deezer");
-	if (!connectResponse.credentialStatus?.spotify)
-		missingCredentials.push("Spotify");
-	if (missingCredentials.length) {
-		toast(
-			`Setup incomplete: ${missingCredentials.join(
-				" and "
-			)} credentials are not configured.`,
-			"warning",
-			true,
-			"credential-setup-toast"
-		);
-	}
-
 	let arl = localStorage.getItem("arl");
+	let deezerCredentialsConfigured = Boolean(arl);
 
 	if (connectResponse.singleUser) {
 		if (connectResponse.singleUser.arl) arl = connectResponse.singleUser.arl;
+		deezerCredentialsConfigured ||= Boolean(connectResponse.singleUser.arl);
 	}
 
 	if (connectResponse.autologin) {
@@ -97,9 +83,26 @@ async function startApp() {
 		if (arl) {
 			const result = await login(arl, Number(accountNum));
 			loggedIn(result);
+			deezerCredentialsConfigured ||= [1, 2, 3].includes(result.status);
 		}
 	} else {
 		loggedIn({ status: 3, user: connectResponse.currentUser, arl });
+		deezerCredentialsConfigured = true;
+	}
+
+	const missingCredentials: string[] = [];
+	if (!deezerCredentialsConfigured) missingCredentials.push("Deezer");
+	if (!connectResponse.credentialStatus?.spotify)
+		missingCredentials.push("Spotify");
+	if (missingCredentials.length) {
+		toast(
+			`Setup incomplete: ${missingCredentials.join(
+				" and "
+			)} credentials are not configured.`,
+			"warning",
+			true,
+			"credential-setup-toast"
+		);
 	}
 
 	if (connectResponse.checkForUpdates) {
