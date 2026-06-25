@@ -51,6 +51,22 @@ async function startApp() {
 	appInfoStore.setAppInfo(connectResponse.update);
 	loginStore.setSpotifyStatus(spotifyStatus);
 
+	const missingCredentials: string[] = [];
+	if (!connectResponse.credentialStatus?.deezer)
+		missingCredentials.push("Deezer");
+	if (!connectResponse.credentialStatus?.spotify)
+		missingCredentials.push("Spotify");
+	if (missingCredentials.length) {
+		toast(
+			`Setup incomplete: ${missingCredentials.join(
+				" and "
+			)} credentials are not configured.`,
+			"warning",
+			true,
+			"credential-setup-toast"
+		);
+	}
+
 	let arl = localStorage.getItem("arl");
 
 	if (connectResponse.singleUser) {

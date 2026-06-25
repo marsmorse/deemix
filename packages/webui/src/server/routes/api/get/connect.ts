@@ -40,6 +40,10 @@ const handler: ApiHandler["handler"] = async (req, res) => {
 		currentUser: dz.currentUser,
 		deezerAvailable: await deemix.isDeezerAvailable(),
 		spotifyEnabled: deemix.plugins.spotify.enabled,
+		credentialStatus: {
+			deezer: Boolean(getLoginCredentials().arl || process.env.DEEZER_ARL),
+			spotify: deemix.plugins.spotify.enabled,
+		},
 		settingsData: deemix.getSettings(),
 	};
 

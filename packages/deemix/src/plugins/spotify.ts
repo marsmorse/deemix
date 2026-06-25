@@ -955,13 +955,21 @@ export default class SpotifyPlugin extends BasePlugin {
 	}
 
 	setSettings(newSettings) {
+		const envClientId = process.env.SPOTIFY_CLIENT_ID?.trim();
+		const envClientSecret = process.env.SPOTIFY_CLIENT_SECRET?.trim();
+		const envFallbackSearch = process.env.SPOTIFY_FALLBACK_SEARCH?.trim();
 		this.credentials = {
-			clientId: newSettings.clientId,
-			clientSecret: newSettings.clientSecret,
+			clientId: envClientId || newSettings.clientId,
+			clientSecret: envClientSecret || newSettings.clientSecret,
 		};
 		const settings = { ...newSettings };
 		delete settings.clientId;
 		delete settings.clientSecret;
+		if (envFallbackSearch) {
+			settings.fallbackSearch = ["1", "true", "yes", "on"].includes(
+				envFallbackSearch.toLowerCase()
+			);
+		}
 		this.settings = settings;
 	}
 
