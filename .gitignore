@@ -19,6 +19,8 @@ node_modules/
 # development
 *.map
 dev.sh
+config/
+downloads/
 
 # distribution
 dist/
