@@ -78,6 +78,9 @@ onMounted(async () => {
 	defaultSettings.value = defaultSettingsData;
 	spotifyFeatures.value = spotifyCredentials;
 	initSettings(settingsData, spotifyCredentials);
+	if (loginStore.spotifyUser.id && !spotifyUser.value) {
+		spotifyUser.value = loginStore.spotifyUser.id;
+	}
 
 	if (spotifyUser.value) {
 		lastUser.value = spotifyUser.value;

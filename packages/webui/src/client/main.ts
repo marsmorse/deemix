@@ -50,6 +50,10 @@ async function startApp() {
 
 	appInfoStore.setAppInfo(connectResponse.update);
 	loginStore.setSpotifyStatus(spotifyStatus);
+	if (connectResponse.spotifyUser) {
+		loginStore.setSpotifyUserId(connectResponse.spotifyUser);
+		localStorage.setItem("spotifyUser", connectResponse.spotifyUser);
+	}
 
 	let arl = localStorage.getItem("arl");
 	let deezerCredentialsConfigured = Boolean(arl);
